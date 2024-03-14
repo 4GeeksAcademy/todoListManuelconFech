@@ -1,9 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { RxCross2 } from "react-icons/rx";
 
 const List = () => {
   const [lista, setLista] = useState("");
   const [todo, setTodo] = useState([]);
+
+  
+
+    const getTodos = () => {
+      const requestOptions = {
+        method: "GET",
+        redirect: "follow"
+      };
+      
+      fetch("https://playground.4geeks.com/apis/fake/todos/user/Manu", requestOptions)
+        .then((response) => response.json())
+        .then((result) => setTodo(result))
+        .catch((error) => console.error(error));
+
+    }
+
+    useEffect (()=> {
+      getTodos ();
+    },[])
 
   return (
     <div>
@@ -25,9 +44,9 @@ const List = () => {
               }}
             />
           </li>
-          {todo.map((item, index) => (
-            <li>
-              {item}{" "}
+          {todo.map((item) => (
+            <li key= {item.id}>
+              {item.label}{" "}
               <RxCross2
                 className="icono"
                 /* style={{ marginLeft: "250px" }} */
