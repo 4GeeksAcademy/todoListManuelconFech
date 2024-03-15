@@ -6,11 +6,13 @@ const List = () => {
   const [todo, setTodo] = useState([]);
 
   useEffect(() => {
-    getTodos(); // Llamar a getTodos al cargar el componente
+    getTodos();
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("todos", JSON.stringify(todo)); // Guardar los todos en el almacenamiento local
+    if (todo.length > 0) {
+      modificated(); 
+    }
   }, [todo]);
 
   const handleSubmit = () => {
@@ -19,12 +21,21 @@ const List = () => {
   };
 
   const getTodos = () => {
-    const savedTodos = JSON.parse(localStorage.getItem("todos")); // Obtener los todos del almacenamiento local
-    if (savedTodos) {
-      setTodo(savedTodos);
-    } else {
-      createUser();
-    }
+    fetch("https://playground.4geeks.com/apis/fake/todos/user/Manu")
+      .then((response) => {
+        if (response.status === 404) {
+          createUser();
+        }
+        return response.json();
+      })
+      .then((result) => {
+        if (Array.isArray(result)) {
+          setTodo(result);
+        } else {
+          console.log("esta vacio");
+        }
+      })
+      .catch((error) => console.error(error));
   };
 
   const createUser = () => {
@@ -38,10 +49,19 @@ const List = () => {
       .catch((error) => console.error(error));
   };
 
+  const modificated = () => {
+    fetch("https://playground.4geeks.com/apis/fake/todos/user/Manu", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(todo),
+    })
+      .then((response) => response.json())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+  };
+
   const deleteTodo = (index) => {
-    const updatedTodos = todo.filter(
-      (_, currentIndex) => currentIndex !== index
-    );
+    const updatedTodos = todo.filter((_, currentIndex) => currentIndex !== index);
     setTodo(updatedTodos);
   };
 
@@ -56,7 +76,7 @@ const List = () => {
               type="text"
               onChange={(e) => setLista(e.target.value)}
               value={lista}
-              placeholder="que tarea toca hoy?"
+              placeholder="que toca hoy?"
               onKeyPress={(e) => {
                 if (e.key === "Enter") {
                   handleSubmit();
@@ -76,7 +96,7 @@ const List = () => {
           ))}
         </ul>
         <div style={{ marginLeft: "30px", marginBottom: "20px" }}>
-          {todo.length > 0 ? todo.length : "no hay tareas"}
+          {todo.length > 0 ? todo.length : "no hay tarea"}
         </div>
       </div>
     </div>
