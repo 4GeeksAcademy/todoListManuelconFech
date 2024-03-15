@@ -5,24 +5,57 @@ const List = () => {
   const [lista, setLista] = useState("");
   const [todo, setTodo] = useState([]);
 
-  
+  const handleSubmit = () => {
+    console.log(lista);
+    setTodo(todo.concat({ label: lista, done: false }));
+    console.log(todo);
+    setLista("");
+    modificated(); // Llamar a modificated para actualizar los todos
+  };
 
-    const getTodos = () => {
-      const requestOptions = {
-        method: "GET",
-        redirect: "follow"
-      };
-      
-      fetch("https://playground.4geeks.com/apis/fake/todos/user/Manu", requestOptions)
-        .then((response) => response.json())
-        .then((result) => setTodo(result))
-        .catch((error) => console.error(error));
+  const getTodos = () => {
+    fetch("https://playground.4geeks.com/apis/fake/todos/user/Manu")
+      .then((response) => {
+        if (response.status === 404) {
+          createUser();
+        }
+        return response.json(); // Devolver los datos en formato JSON
+      })
+      .then((result) => {
+        if (Array.isArray(result)) {
+          setTodo(result);
+        } else {
+          console.log("esta vacio");
+        }
+      })
+      .catch((error) => console.error(error));
+  };
 
-    }
+  const createUser = () => {
+    fetch("https://playground.4geeks.com/apis/fake/todos/user/Manu", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify([]),
+    })
+      .then((response) => response.json())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+  };
 
-    useEffect (()=> {
-      getTodos ();
-    },[])
+  const modificated = () => {
+    fetch("https://playground.4geeks.com/apis/fake/todos/user/Manu", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(todo), // Enviar la lista actualizada
+    })
+      .then((response) => response.json())
+      .then((result) => console.log(result))
+      .catch((error) => console.error(error));
+  };
+
+  useEffect(() => {
+    getTodos(); // Llamar a getTodos al cargar el componente
+  }, []);
 
   return (
     <div>
@@ -38,28 +71,31 @@ const List = () => {
               placeholder="que toca hoy?"
               onKeyPress={(e) => {
                 if (e.key === "Enter") {
-                  setTodo(todo.concat(lista));
-                  setLista("");
+                  handleSubmit();
                 }
               }}
             />
           </li>
-          {todo.map((item) => (
-            <li key= {item.id}>
-              {item.label}{" "}
-              <RxCross2
-                className="icono"
-                /* style={{ marginLeft: "250px" }} */
-                onClick={() =>
-                  setTodo(
-                    todo.filter((_, currentIndex) => currentIndex !== index)
-                  )
-                }
-              />
-            </li>
-          ))}
+          {todo
+            ? todo.map((item, index) => (
+                <li key={index}>
+                  {item.label}{" "}
+                  <RxCross2
+                    className="icono"
+                    style={{ marginRight: "50px" }}
+                    onClick={() =>
+                      setTodo(
+                        todo.filter((_, currentIndex) => currentIndex !== index)
+                      )
+                    }
+                  />
+                </li>
+              ))
+            : null}
         </ul>
-        <div style={{ marginLeft: "30px" }}>{todo.length}</div>
+        <div style={{ marginLeft: "30px", marginBottom: "20px" }}>
+          {todo ? todo.length : "no hay tarea"}
+        </div>
       </div>
     </div>
   );
